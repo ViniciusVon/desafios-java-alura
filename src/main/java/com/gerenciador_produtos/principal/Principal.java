@@ -1,28 +1,36 @@
 package com.gerenciador_produtos.principal;
 
 import com.gerenciador_produtos.model.Categoria;
+import com.gerenciador_produtos.model.Fornecedor;
 import com.gerenciador_produtos.model.Pedido;
 import com.gerenciador_produtos.model.Produto;
 import com.gerenciador_produtos.repository.CategoriaRepository;
+import com.gerenciador_produtos.repository.FornecedorRepository;
 import com.gerenciador_produtos.repository.PedidoRepository;
 import com.gerenciador_produtos.repository.ProdutoRepository;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class Principal {
 
     private Scanner leitura = new Scanner(System.in);
+    List<Categoria> categorias = new ArrayList<>();
+    List<Produto> produtos = new ArrayList<>();
 
     private ProdutoRepository produtoRepository;
     private CategoriaRepository categoriaRepository;
     private PedidoRepository pedidoRepository;
+    private FornecedorRepository fornecedorRepository;
 
-    public Principal (ProdutoRepository produtoRepository, CategoriaRepository categoriaRepository, PedidoRepository pedidoRepository) {
+    public Principal (ProdutoRepository produtoRepository, CategoriaRepository categoriaRepository, PedidoRepository pedidoRepository, FornecedorRepository fornecedorRepository) {
         this.produtoRepository = produtoRepository;
         this.categoriaRepository = categoriaRepository;
         this.pedidoRepository = pedidoRepository;
+        this.fornecedorRepository = fornecedorRepository;
     }
 
     public void exibeMenu() {
@@ -32,6 +40,7 @@ public class Principal {
                 1 - Produtos
                 2 - Categorias
                 3 - Pedidos
+                4 - Fornecedores
                 
                 0 - Sair                                 
                 """;
@@ -49,6 +58,9 @@ public class Principal {
                     break;
                 case 3:
                     carregarPedidos();
+                    break;
+                case 4:
+                    carregarFornecedores();
                     break;
                 case 0:
                     System.out.println("Saindo...");
@@ -135,16 +147,59 @@ public class Principal {
         }
     }
 
+    private void carregarFornecedores() {
+        var opcao = -1;
+        while(opcao != 0){
+            var menu = """
+                    1 - Criar Fornecedor
+                    2 - Buscar Fornecedores
+                    
+                    0 - Voltar ao Menu Principal
+                    """;
+            System.out.println(menu);
+            opcao = leitura.nextInt();
+            leitura.nextLine();
+
+            switch (opcao) {
+                case 1:
+                    criarFornecedor();
+                    break;
+                case 2:
+                    buscarFornecedores();
+                    break;
+                case 0:
+                    System.out.println("Voltando...");
+            }
+        }
+    }
+
     private void criarProduto(){
-        System.out.println("Digite o nome do produto: ");
-        String produtoNome = leitura.nextLine();
+        buscarCategorias();
+        System.out.println("Digite a categoria que desja inserir o produto: ");
+        String categoria = leitura.nextLine();
+        Optional<Categoria> firstCategoria = categorias.stream()
+                .filter(c -> c.getNome().toLowerCase().contains(categoria.toLowerCase()))
+                .findFirst();
 
-        System.out.println("Digite o preço do produto: ");
-        Double produtoPreco = leitura.nextDouble();
+        if(firstCategoria.isPresent()){
+            var categoriaEncontrada = firstCategoria.get();
 
-        Produto novoProduto = new Produto(produtoNome, produtoPreco);
-        produtoRepository.save(novoProduto);
-        System.out.println("Produto criado com sucesso!");
+            System.out.println("Digite o nome do produto: ");
+            String produtoNome = leitura.nextLine();
+
+            System.out.println("Digite o preço do produto: ");
+            Double produtoPreco = leitura.nextDouble();
+
+            Produto novoProduto = new Produto(produtoNome, produtoPreco, categoriaEncontrada);
+
+            Fornecedor fornecedorBase = new Fornecedor("Elma Chips");
+            fornecedorRepository.save(fornecedorBase);
+            novoProduto.setFornecedor(fornecedorBase);
+            produtoRepository.save(novoProduto);
+            System.out.println("Produto criado com sucesso!");
+        } else {
+            System.out.println("Nenhuma categoria encontrada!");
+        }
     }
 
     private void criarCategoria(){
@@ -157,28 +212,54 @@ public class Principal {
     }
 
     private void criarPedido(){
-        System.out.println("Digite a data do pedido (yyyy-mm-dd): ");
-        String entradaDataPedido = leitura.nextLine();
+        buscarProdutos();
+        System.out.println("Digite o nome do produto que deseja realizar o pedido: ");
+        String produtoNome = leitura.nextLine();
 
-        LocalDate dataPedido = LocalDate.parse(entradaDataPedido);
+        Optional<Produto> firstProduto = produtos.stream()
+                .filter(p -> p.getNome().toLowerCase().contains(produtoNome.toLowerCase()))
+                .findFirst();
 
-        Pedido novoPedido = new Pedido(dataPedido);
-        pedidoRepository.save(novoPedido);
+        if(firstProduto.isPresent()){
+            var produtoEncontrado = firstProduto.get();
+            LocalDate dataPedido = LocalDate.now();
+
+            Pedido novoPedido = new Pedido(dataPedido);
+            novoPedido.setProdutos(List.of(produtoEncontrado));
+
+            pedidoRepository.save(novoPedido);
+            System.out.println("Pedido criado com sucesso!");
+        } else {
+            System.out.println("Pedido não encontrado!");
+        }
+    }
+
+    private void criarFornecedor(){
+        System.out.println("Digite o nome do fornecedor: ");
+        String fornecedorNome = leitura.nextLine();
+
+        Fornecedor novoFornecedor = new Fornecedor(fornecedorNome);
+        fornecedorRepository.save(novoFornecedor);
         System.out.println("Categoria criada com sucesso!");
     }
 
     private void buscarProdutos(){
-        List<Produto> produtos = produtoRepository.findAll();
+        produtos = produtoRepository.findAll();
         System.out.println(produtos);
     }
 
     private void buscarCategorias(){
-        List<Categoria> categorias = categoriaRepository.findAll();
+        categorias = categoriaRepository.findAll();
         System.out.println(categorias);
     }
 
     private void buscarPedidos(){
         List<Pedido> pedidos = pedidoRepository.findAll();
         System.out.println(pedidos);
+    }
+
+    private void buscarFornecedores(){
+        List<Fornecedor> fornecedores = fornecedorRepository.findAll();
+        System.out.println(fornecedores);
     }
 }

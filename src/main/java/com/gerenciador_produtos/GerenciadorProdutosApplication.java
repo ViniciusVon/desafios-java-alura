@@ -2,6 +2,7 @@ package com.gerenciador_produtos;
 
 import com.gerenciador_produtos.principal.Principal;
 import com.gerenciador_produtos.repository.CategoriaRepository;
+import com.gerenciador_produtos.repository.FornecedorRepository;
 import com.gerenciador_produtos.repository.PedidoRepository;
 import com.gerenciador_produtos.repository.ProdutoRepository;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -22,6 +23,9 @@ public class GerenciadorProdutosApplication implements CommandLineRunner {
     @Autowired
     private PedidoRepository pedidoRepository;
 
+    @Autowired
+    private FornecedorRepository fornecedorRepository;
+
 	public static void main(String[] args) {
 		Dotenv dotenv = Dotenv.load();
         dotenv.entries().forEach((entry) -> System.setProperty(entry.getKey(), entry.getValue()));
@@ -30,7 +34,7 @@ public class GerenciadorProdutosApplication implements CommandLineRunner {
 	}
 
     public void run(String... args) throws Exception {
-        Principal principal = new Principal(produtoRepository, categoriaRepository, pedidoRepository);
+        Principal principal = new Principal(produtoRepository, categoriaRepository, pedidoRepository, fornecedorRepository);
         principal.exibeMenu();
     }
 

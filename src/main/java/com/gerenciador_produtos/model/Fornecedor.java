@@ -2,23 +2,17 @@ package com.gerenciador_produtos.model;
 
 import jakarta.persistence.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
-@Table(name = "categorias")
-public class Categoria {
+@Table(name = "fornecedores")
+public class Fornecedor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nome;
 
-    @OneToMany(mappedBy = "categoria",cascade = CascadeType.ALL,  fetch = FetchType.EAGER)
-    private List<Produto> produtos = new ArrayList<>();
+    public Fornecedor() {}
 
-    public Categoria() {}
-
-    public Categoria(String nome) {
+    public Fornecedor(String nome) {
         this.nome = nome;
     }
 
@@ -38,13 +32,6 @@ public class Categoria {
         this.nome = nome;
     }
 
-    public List<Produto> getProdutos() {
-        return produtos;
-    }
-
-    public void setProdutos(List<Produto> produtos) {
-        this.produtos = produtos;
-    }
 
     @Override
     public String toString(){
