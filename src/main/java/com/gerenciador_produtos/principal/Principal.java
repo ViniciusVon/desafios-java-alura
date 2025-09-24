@@ -76,7 +76,8 @@ public class Principal {
         while(opcao != 0){
             var menu = """
                     1 - Criar Produto
-                    2 - Buscar Produtos
+                    2 - Buscar Produtos Pelo Nome
+                    3 - Buscar Todos Produtos
                     
                     0 - Voltar ao Menu Principal
                     """;
@@ -89,6 +90,9 @@ public class Principal {
                     criarProduto();
                     break;
                 case 2:
+                    buscarProdutosNome();
+                    break;
+                case 3:
                     buscarProdutos();
                     break;
                 case 0:
@@ -261,5 +265,17 @@ public class Principal {
     private void buscarFornecedores(){
         List<Fornecedor> fornecedores = fornecedorRepository.findAll();
         System.out.println(fornecedores);
+    }
+
+    private void buscarProdutosNome(){
+        System.out.println("Digite o nome do produto: ");
+        String produtoNome = leitura.nextLine();
+        Optional<Produto> produtoBuscado = produtoRepository.findByNomeContainingIgnoreCase(produtoNome);
+
+        if(produtoBuscado.isPresent()){
+            System.out.println("Produto Buscado: " +  produtoBuscado.get());
+        } else {
+            System.out.println("Nenhum produto encontrado no sistema!");
+        }
     }
 }
